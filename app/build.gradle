@@ -13,21 +13,25 @@ android {
         applicationId 'com.truong.darongmobile'
         minSdk 24
         targetSdk 36
+
         versionCode 5
         versionName '5.0-android'
 
+        // Python 3.13 chỉ dùng ABI 64-bit
         ndk {
-            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+            abiFilters 'arm64-v8a', 'x86_64'
         }
     }
 
     buildTypes {
-        release {
+        debug {
             minifyEnabled false
             shrinkResources false
         }
-        debug {
+
+        release {
             minifyEnabled false
+            shrinkResources false
         }
     }
 
@@ -54,15 +58,18 @@ android {
 
 chaquopy {
     defaultConfig {
+        // Python chạy bên trong APK
         version = '3.13'
-        buildPython 'python'
+
         pip {
             install 'requests==2.32.5'
             install 'urllib3==2.5.0'
+
             install 'python-socketio==5.11.4'
             install 'python-engineio==4.9.1'
             install 'websocket-client==1.8.0'
             install 'simple-websocket==1.1.0'
+
             install 'bidict==0.23.1'
             install 'python-dateutil==2.9.0.post0'
             install 'six==1.17.0'
@@ -71,16 +78,30 @@ chaquopy {
 }
 
 dependencies {
-    def composeBom = platform('androidx.compose:compose-bom:2026.09.00')
-    implementation composeBom
-    androidTestImplementation composeBom
+    // Compose BOM
+    def composeBom = platform(
+        'androidx.compose:compose-bom:2026.09.00'
+    )
 
+    implementation composeBom
+
+    // AndroidX Activity
     implementation 'androidx.activity:activity-compose:1.13.0'
+
+    // Core
     implementation 'androidx.core:core-ktx:1.19.1'
+
+    // Lifecycle
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.11.0'
+
+    // Compose UI
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.ui:ui-tooling-preview'
+
+    // Material
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.compose.material:material-icons-extended'
+
+    // Preview/debug tools
     debugImplementation 'androidx.compose.ui:ui-tooling'
 }
