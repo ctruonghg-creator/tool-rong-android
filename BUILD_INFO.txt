@@ -1,0 +1,8 @@
+DaRong Mobile Android
+Version: 5.0-android
+compileSdk: 36
+ targetSdk: 36
+minSdk: 24
+UI: Jetpack Compose Material 3
+Python bridge: Chaquopy 16.1.0 / Python 3.13
+ABIs: arm64-v8a, armeabi-v7a, x86_64
