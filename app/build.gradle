@@ -11,6 +11,7 @@ android {
 
     defaultConfig {
         applicationId 'com.truong.darongmobile'
+
         minSdk 24
         targetSdk 36
 
@@ -62,10 +63,12 @@ chaquopy {
         pip {
             install 'requests==2.32.5'
             install 'urllib3==2.5.0'
+
             install 'python-socketio==5.11.4'
             install 'python-engineio==4.9.1'
             install 'websocket-client==1.8.0'
             install 'simple-websocket==1.1.0'
+
             install 'bidict==0.23.1'
             install 'python-dateutil==2.9.0.post0'
             install 'six==1.17.0'
@@ -74,22 +77,31 @@ chaquopy {
 }
 
 dependencies {
+    // Compose BOM 2025.12.00 = Compose 1.10 stable
     def composeBom = platform(
-        'androidx.compose:compose-bom:2026.09.00'
+        'androidx.compose:compose-bom:2025.12.00'
     )
 
     implementation composeBom
     androidTestImplementation composeBom
 
-    implementation 'androidx.activity:activity-compose:1.13.0'
-    implementation 'androidx.core:core-ktx:1.19.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.11.0'
+    // Activity
+    implementation 'androidx.activity:activity-compose:1.11.0'
 
+    // Core
+    implementation 'androidx.core:core-ktx:1.17.0'
+
+    // Lifecycle compatible với compileSdk 36
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.9.4'
+
+    // Compose
     implementation 'androidx.compose.ui:ui'
     implementation 'androidx.compose.ui:ui-tooling-preview'
 
+    // Material
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.compose.material:material-icons-extended'
 
+    // Debug
     debugImplementation 'androidx.compose.ui:ui-tooling'
 }
