@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+
 package com.truong.darongmobile
 
 import android.os.Bundle
@@ -38,10 +40,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,13 +66,13 @@ private data class AccUi(
     val logged: Boolean = false,
     val connected: Boolean = false,
     val bag: String = "0/0",
-    val stone: String = "0"
+    val stone: String = "0",
 )
 
 private val servers = listOf(
     "https://daorongsv1.shop",
     "https://daorongsv1.shop:52345",
-    "https://daorongsv1.shop:52346"
+    "https://daorongsv1.shop:52346",
 )
 
 class MainActivity : ComponentActivity() {
@@ -94,7 +96,9 @@ class MainActivity : ComponentActivity() {
 private fun DaRongTheme(
     content: @Composable () -> Unit
 ) {
-    MaterialTheme(content = content)
+    MaterialTheme(
+        content = content
+    )
 }
 
 @Composable
@@ -111,12 +115,16 @@ private fun DaRongApp(
 
     var accs by remember {
         mutableStateOf(
-            (1..3).associateWith { AccUi() }
+            (1..3).associateWith {
+                AccUi()
+            }
         )
     }
 
     var logs by remember {
-        mutableStateOf(emptyList<String>())
+        mutableStateOf(
+            listOf<String>()
+        )
     }
 
     val snack = remember {
@@ -124,35 +132,47 @@ private fun DaRongApp(
     }
 
     LaunchedEffect(selectedAcc) {
+
         while (true) {
+
             try {
+
                 val st = bridge.statusJson(selectedAcc)
 
-                val current = accs[selectedAcc] ?: AccUi()
+                val current =
+                    accs[selectedAcc] ?: AccUi()
 
                 accs = accs + (
                     selectedAcc to current.copy(
                         logged = st.optBoolean("logged"),
                         connected = st.optBoolean("connected"),
-                        bag = "${st.optInt("bag")}/${st.optInt("bag_max")}",
-                        stone = String.format(
-                            "%,d",
-                            st.optLong("thach_anh")
-                        )
+                        bag =
+                            "${st.optInt("bag")}/${st.optInt("bag_max")}",
+                        stone =
+                            String.format(
+                                "%,d",
+                                st.optLong("thach_anh")
+                            ),
                     )
                 )
 
-                val rawLogs = bridge.drainLogs(selectedAcc)
-
-                val newLogs = rawLogs
-                    .split("\\n")
-                    .filter { it.isNotBlank() }
+                val newLogs =
+                    bridge
+                        .drainLogs(selectedAcc)
+                        .split("\\n")
+                        .filter {
+                            it.isNotBlank()
+                        }
 
                 if (newLogs.isNotEmpty()) {
-                    logs = (logs + newLogs).takeLast(300)
+
+                    logs =
+                        (logs + newLogs)
+                            .takeLast(300)
                 }
+
             } catch (_: Exception) {
-                // Giữ UI hoạt động nếu Python bridge chưa sẵn sàng.
+                // Không làm app crash nếu Python chưa sẵn sàng.
             }
 
             delay(800)
@@ -160,100 +180,158 @@ private fun DaRongApp(
     }
 
     Scaffold(
+
         modifier = Modifier.fillMaxSize(),
 
         topBar = {
-            TopAppBar(
+
+            SmallTopAppBar(
+
                 title = {
+
                     Column {
+
                         Text(
                             text = "Đảo Rồng Mobile",
                             fontWeight = FontWeight.Bold
                         )
 
                         Text(
-                            text = "Android 16 • Xiaomi • Engine Python",
-                            style = MaterialTheme.typography.labelSmall
+                            text =
+                                "Android 16 • Xiaomi • Engine Python",
+                            style =
+                                MaterialTheme.typography.labelSmall
                         )
                     }
                 },
 
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
+                colors =
+                    TopAppBarDefaults.smallTopAppBarColors(
+                        containerColor =
+                            MaterialTheme.colorScheme.surface
+                    ),
 
                 actions = {
-                    val online = accs[selectedAcc]?.connected == true
+
+                    val online =
+                        accs[selectedAcc]?.connected == true
 
                     Text(
-                        text = if (online) "ONLINE" else "OFFLINE",
-                        color = if (online) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(end = 12.dp)
+
+                        text =
+                            if (online)
+                                "ONLINE"
+                            else
+                                "OFFLINE",
+
+                        color =
+                            if (online)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.error,
+
+                        fontWeight =
+                            FontWeight.Bold,
+
+                        modifier =
+                            Modifier.padding(
+                                end = 12.dp
+                            )
                     )
                 }
             )
         },
 
         bottomBar = {
+
             NavigationBar(
-                modifier = Modifier.navigationBarsPadding()
+                modifier =
+                    Modifier.navigationBarsPadding()
             ) {
+
                 NavigationBarItem(
-                    selected = page == 0,
-                    onClick = { page = 0 },
+                    selected =
+                        page == 0,
+
+                    onClick = {
+                        page = 0
+                    },
+
                     icon = {
                         Icon(
-                            imageVector = Icons.Filled.Dashboard,
-                            contentDescription = "Tổng quan"
+                            imageVector =
+                                Icons.Filled.Dashboard,
+                            contentDescription =
+                                "Tổng quan"
                         )
                     },
+
                     label = {
                         Text("Tổng quan")
                     }
                 )
 
                 NavigationBarItem(
-                    selected = page == 1,
-                    onClick = { page = 1 },
+                    selected =
+                        page == 1,
+
+                    onClick = {
+                        page = 1
+                    },
+
                     icon = {
                         Icon(
-                            imageVector = Icons.Filled.AutoAwesome,
-                            contentDescription = "Auto"
+                            imageVector =
+                                Icons.Filled.AutoAwesome,
+                            contentDescription =
+                                "Auto"
                         )
                     },
+
                     label = {
                         Text("Auto")
                     }
                 )
 
                 NavigationBarItem(
-                    selected = page == 2,
-                    onClick = { page = 2 },
+                    selected =
+                        page == 2,
+
+                    onClick = {
+                        page = 2
+                    },
+
                     icon = {
                         Icon(
-                            imageVector = Icons.Filled.Event,
-                            contentDescription = "Sự kiện"
+                            imageVector =
+                                Icons.Filled.Event,
+                            contentDescription =
+                                "Sự kiện"
                         )
                     },
+
                     label = {
                         Text("Sự kiện")
                     }
                 )
 
                 NavigationBarItem(
-                    selected = page == 3,
-                    onClick = { page = 3 },
+                    selected =
+                        page == 3,
+
+                    onClick = {
+                        page = 3
+                    },
+
                     icon = {
                         Icon(
-                            imageVector = Icons.Filled.Terminal,
-                            contentDescription = "Log"
+                            imageVector =
+                                Icons.Filled.Terminal,
+                            contentDescription =
+                                "Log"
                         )
                     },
+
                     label = {
                         Text("Log")
                     }
@@ -264,10 +342,11 @@ private fun DaRongApp(
         snackbarHost = {
             SnackbarHost(snack)
         }
+
     ) { padding ->
 
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
@@ -275,27 +354,33 @@ private fun DaRongApp(
             AccountStrip(
                 accs = accs,
                 selected = selectedAcc,
-                onSelect = { selectedAcc = it }
+                onSelect = {
+                    selectedAcc = it
+                }
             )
 
             when (page) {
 
                 0 -> {
+
                     OverviewPage(
                         bridge = bridge,
                         acc = selectedAcc,
-                        state = accs[selectedAcc] ?: AccUi()
+                        state =
+                            accs[selectedAcc] ?: AccUi()
                     ) { user, pass, server ->
 
-                        accs = accs + (
-                            selectedAcc to (
-                                accs[selectedAcc] ?: AccUi()
-                            ).copy(
-                                user = user,
-                                pass = pass,
-                                server = server
+                        accs =
+                            accs + (
+                                selectedAcc to (
+                                    accs[selectedAcc]
+                                        ?: AccUi()
+                                ).copy(
+                                    user = user,
+                                    pass = pass,
+                                    server = server
+                                )
                             )
-                        )
 
                         bridge.login(
                             selectedAcc,
@@ -334,42 +419,63 @@ private fun AccountStrip(
     selected: Int,
     onSelect: (Int) -> Unit
 ) {
+
     Row(
-        modifier = Modifier
+
+        Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
+            .horizontalScroll(
+                rememberScrollState()
+            )
             .padding(
                 horizontal = 12.dp,
                 vertical = 8.dp
             ),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+        horizontalArrangement =
+            Arrangement.spacedBy(8.dp)
+
     ) {
 
-        accs.keys.sorted().forEach { id ->
+        accs.keys
+            .sorted()
+            .forEach { id ->
 
-            val state = accs[id]
+                val s = accs[id]
 
-            FilterChip(
-                selected = selected == id,
-                onClick = {
-                    onSelect(id)
-                },
+                FilterChip(
 
-                label = {
-                    Text(
-                        "ACC $id${if (state?.logged == true) " • ✓" else ""}"
-                    )
-                },
+                    selected =
+                        selected == id,
 
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Filled.AccountCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            )
-        }
+                    onClick = {
+                        onSelect(id)
+                    },
+
+                    label = {
+
+                        Text(
+                            "ACC $id" +
+                                if (s?.logged == true)
+                                    " • ✓"
+                                else
+                                    ""
+                        )
+                    },
+
+                    leadingIcon = {
+
+                        Icon(
+                            imageVector =
+                                Icons.Filled.AccountCircle,
+                            contentDescription =
+                                null,
+                            modifier =
+                                Modifier.size(18.dp)
+                        )
+                    }
+                )
+            }
     }
 }
 
@@ -378,12 +484,14 @@ private fun OverviewPage(
     bridge: PythonBridge,
     acc: Int,
     state: AccUi,
-    onLogin: (
-        String,
-        String,
-        String
-    ) -> Unit
+    onLogin:
+        (
+            String,
+            String,
+            String
+        ) -> Unit
 ) {
+
     var user by remember(acc) {
         mutableStateOf(state.user)
     }
@@ -397,8 +505,13 @@ private fun OverviewPage(
     }
 
     LazyColumn(
-        contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+
+        contentPadding =
+            PaddingValues(12.dp),
+
+        verticalArrangement =
+            Arrangement.spacedBy(12.dp)
+
     ) {
 
         item {
@@ -406,64 +519,97 @@ private fun OverviewPage(
             Card {
 
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+
+                    Modifier.padding(16.dp),
+
+                    verticalArrangement =
+                        Arrangement.spacedBy(10.dp)
+
                 ) {
 
                     Text(
-                        text = "Tài khoản ACC $acc",
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleMedium
+                        text =
+                            "Tài khoản ACC $acc",
+                        fontWeight =
+                            FontWeight.Bold,
+                        style =
+                            MaterialTheme.typography.titleMedium
                     )
 
                     OutlinedTextField(
+
                         value = user,
+
                         onValueChange = {
                             user = it
                         },
-                        modifier = Modifier.fillMaxWidth(),
+
+                        modifier =
+                            Modifier.fillMaxWidth(),
+
                         label = {
                             Text("User")
                         },
+
                         singleLine = true
                     )
 
                     OutlinedTextField(
+
                         value = pass,
+
                         onValueChange = {
                             pass = it
                         },
-                        modifier = Modifier.fillMaxWidth(),
+
+                        modifier =
+                            Modifier.fillMaxWidth(),
+
                         label = {
                             Text("Password")
                         },
+
                         singleLine = true,
-                        visualTransformation = PasswordVisualTransformation()
+
+                        visualTransformation =
+                            PasswordVisualTransformation()
                     )
 
                     Text(
                         text = "Server",
-                        style = MaterialTheme.typography.labelLarge
+                        style =
+                            MaterialTheme.typography.labelLarge
                     )
 
                     Row(
-                        modifier = Modifier
+
+                        Modifier
                             .horizontalScroll(
                                 rememberScrollState()
                             ),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+                        horizontalArrangement =
+                            Arrangement.spacedBy(8.dp)
+
                     ) {
 
                         servers.forEach { url ->
 
                             FilterChip(
-                                selected = server == url,
+
+                                selected =
+                                    server == url,
+
                                 onClick = {
                                     server = url
                                 },
+
                                 label = {
+
                                     Text(
-                                        url.substringAfter("//")
+                                        url.substringAfter(
+                                            "//"
+                                        )
                                     )
                                 }
                             )
@@ -471,10 +617,14 @@ private fun OverviewPage(
                     }
 
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+                        horizontalArrangement =
+                            Arrangement.spacedBy(8.dp)
+
                     ) {
 
                         Button(
+
                             onClick = {
                                 onLogin(
                                     user,
@@ -482,56 +632,76 @@ private fun OverviewPage(
                                     server
                                 )
                             },
-                            enabled = user.isNotBlank() &&
-                                pass.isNotBlank()
+
+                            enabled =
+                                user.isNotBlank() &&
+                                    pass.isNotBlank()
+
                         ) {
+
                             Text(
-                                if (state.logged) {
+                                if (state.logged)
                                     "Đăng nhập lại"
-                                } else {
+                                else
                                     "Đăng nhập"
-                                }
                             )
                         }
 
                         OutlinedButton(
+
                             onClick = {
                                 bridge.disconnect(acc)
                             },
-                            enabled = state.connected
+
+                            enabled =
+                                state.connected
+
                         ) {
                             Text("Ngắt")
                         }
 
                         OutlinedButton(
+
                             onClick = {
                                 bridge.stopAutomations(acc)
                             },
-                            enabled = state.connected
+
+                            enabled =
+                                state.connected
+
                         ) {
                             Text("Dừng Auto")
                         }
                     }
 
                     Text(
-                        text = when {
-                            state.logged && state.connected ->
-                                "● Đã kết nối và đăng nhập"
 
-                            state.connected ->
-                                "● Đã kết nối"
+                        text =
+                            when {
 
-                            else ->
-                                "○ Chưa kết nối"
-                        },
+                                state.logged &&
+                                    state.connected ->
+                                    "● Đã kết nối và đăng nhập"
 
-                        color = if (state.connected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
+                                state.connected ->
+                                    "● Đã kết nối"
 
-                        fontWeight = FontWeight.SemiBold
+                                else ->
+                                    "○ Chưa kết nối"
+                            },
+
+                        color =
+                            if (state.connected)
+                                MaterialTheme
+                                    .colorScheme
+                                    .primary
+                            else
+                                MaterialTheme
+                                    .colorScheme
+                                    .error,
+
+                        fontWeight =
+                            FontWeight.SemiBold
                     )
                 }
             }
@@ -540,37 +710,49 @@ private fun OverviewPage(
         item {
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+
+                Modifier.fillMaxWidth(),
+
+                horizontalArrangement =
+                    Arrangement.spacedBy(10.dp)
+
             ) {
 
                 StatCard(
                     title = "Túi rồng",
                     value = state.bag,
-                    modifier = Modifier.weight(1f)
+                    modifier =
+                        Modifier.weight(1f)
                 )
 
                 StatCard(
                     title = "Thạch Anh",
                     value = state.stone,
-                    modifier = Modifier.weight(1f)
+                    modifier =
+                        Modifier.weight(1f)
                 )
             }
         }
 
         item {
+
             Text(
                 text = "Bảng điều khiển",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium
+                fontWeight =
+                    FontWeight.Bold,
+                style =
+                    MaterialTheme.typography.titleMedium
             )
         }
 
         item {
+
             ActionCard(
                 title = "Thu hoạch tất cả",
-                subtitle = "ThuHoachCT theo các đảo đã mở"
+                subtitle =
+                    "ThuHoachCT theo các đảo đã mở"
             ) {
+
                 bridge.action(
                     acc,
                     "harvest_all"
@@ -579,10 +761,13 @@ private fun OverviewPage(
         }
 
         item {
+
             ActionCard(
                 title = "Nhận quà",
-                subtitle = "Thu toàn bộ gói quà / thưởng đang có"
+                subtitle =
+                    "Thu toàn bộ gói quà / thưởng đang có"
             ) {
+
                 bridge.action(
                     acc,
                     "claim_all"
@@ -591,10 +776,13 @@ private fun OverviewPage(
         }
 
         item {
+
             ActionCard(
                 title = "Làm mới Lãi",
-                subtitle = "Tải danh sách lai hiện tại"
+                subtitle =
+                    "Tải danh sách lai hiện tại"
             ) {
+
                 bridge.action(
                     acc,
                     "refresh_lai"
@@ -609,24 +797,35 @@ private fun AutoPage(
     bridge: PythonBridge,
     acc: Int
 ) {
+
     LazyColumn(
-        contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+
+        contentPadding =
+            PaddingValues(12.dp),
+
+        verticalArrangement =
+            Arrangement.spacedBy(12.dp)
+
     ) {
 
         item {
+
             Text(
                 text = "Tự động hóa",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineSmall
+                fontWeight =
+                    FontWeight.Bold,
+                style =
+                    MaterialTheme.typography.headlineSmall
             )
         }
 
         item {
+
             ActionCard(
                 "Boss thế giới",
                 "Bật lịch Boss tự động"
             ) {
+
                 bridge.action(
                     acc,
                     "boss_start"
@@ -635,10 +834,12 @@ private fun AutoPage(
         }
 
         item {
+
             ActionCard(
                 "Dừng Boss",
                 "Ngắt lịch Boss"
             ) {
+
                 bridge.action(
                     acc,
                     "boss_stop"
@@ -647,10 +848,12 @@ private fun AutoPage(
         }
 
         item {
+
             ActionCard(
                 "Tẩy Tủy 1 lượt",
                 "Chạy một lượt Tẩy Tủy"
             ) {
+
                 bridge.action(
                     acc,
                     "taytuy_once"
@@ -659,10 +862,12 @@ private fun AutoPage(
         }
 
         item {
+
             ActionCard(
                 "Viễn Chinh",
                 "TinhTheXanh1 • chế độ 0"
             ) {
+
                 bridge.action(
                     acc,
                     "vienchinh"
@@ -671,10 +876,12 @@ private fun AutoPage(
         }
 
         item {
+
             ActionCard(
                 "Đấu Trường",
                 "Auto theo cấu hình mặc định"
             ) {
+
                 bridge.action(
                     acc,
                     "dautruong_auto"
@@ -683,10 +890,12 @@ private fun AutoPage(
         }
 
         item {
+
             ActionCard(
                 "Lôi Đài",
                 "Đánh 1 lượt không mua lượt"
             ) {
+
                 bridge.action(
                     acc,
                     "loidai_one"
@@ -695,10 +904,12 @@ private fun AutoPage(
         }
 
         item {
+
             ActionCard(
                 "Feed Auto",
                 "Chạy bộ xử lý cho ăn theo đảo"
             ) {
+
                 bridge.action(
                     acc,
                     "feed_auto"
@@ -707,10 +918,12 @@ private fun AutoPage(
         }
 
         item {
+
             ActionCard(
                 "Quét đảo",
                 "Cập nhật danh sách đảo từ LoginSuccess"
             ) {
+
                 bridge.action(
                     acc,
                     "island_scan"
@@ -719,10 +932,12 @@ private fun AutoPage(
         }
 
         item {
+
             ActionCard(
                 "Dừng toàn bộ",
                 "Dừng các auto controller của ACC"
             ) {
+
                 bridge.stopAll(acc)
             }
         }
@@ -734,24 +949,35 @@ private fun EventPage(
     bridge: PythonBridge,
     acc: Int
 ) {
+
     LazyColumn(
-        contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+
+        contentPadding =
+            PaddingValues(12.dp),
+
+        verticalArrangement =
+            Arrangement.spacedBy(12.dp)
+
     ) {
 
         item {
+
             Text(
                 text = "Sự kiện",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineSmall
+                fontWeight =
+                    FontWeight.Bold,
+                style =
+                    MaterialTheme.typography.headlineSmall
             )
         }
 
         item {
+
             ActionCard(
                 "Điểm danh sự kiện",
                 "Chạy luồng điểm danh/nhiệm vụ"
             ) {
+
                 bridge.action(
                     acc,
                     "event_checkin"
@@ -760,10 +986,12 @@ private fun EventPage(
         }
 
         item {
+
             ActionCard(
                 "Event đang chọn",
                 "Chạy EventSocketController với event mặc định"
             ) {
+
                 bridge.action(
                     acc,
                     "event_flow"
@@ -772,10 +1000,12 @@ private fun EventPage(
         }
 
         item {
+
             ActionCard(
                 "Ải Thí Luyện",
                 "Chạy 1 lượt theo cấu hình mặc định"
             ) {
+
                 bridge.action(
                     acc,
                     "ai_once"
@@ -784,10 +1014,12 @@ private fun EventPage(
         }
 
         item {
+
             ActionCard(
                 "Thủy Quái",
                 "Chạy 1 lượt theo cấu hình mặc định"
             ) {
+
                 bridge.action(
                     acc,
                     "thuyquai_once"
@@ -796,10 +1028,12 @@ private fun EventPage(
         }
 
         item {
+
             ActionCard(
                 "Sinh nhật AI",
                 "Chạy 1 lượt theo cấu hình mặc định"
             ) {
+
                 bridge.action(
                     acc,
                     "birthday_once"
@@ -813,30 +1047,46 @@ private fun EventPage(
 private fun LogPage(
     logs: List<String>
 ) {
+
     LazyColumn(
-        contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+
+        contentPadding =
+            PaddingValues(12.dp),
+
+        verticalArrangement =
+            Arrangement.spacedBy(4.dp)
+
     ) {
 
         item {
+
             Text(
                 text = "Nhật ký realtime",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineSmall
+                fontWeight =
+                    FontWeight.Bold,
+                style =
+                    MaterialTheme.typography.headlineSmall
             )
         }
 
         items(logs) { line ->
 
             Text(
+
                 text = line,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant
-                    )
-                    .padding(8.dp)
+
+                style =
+                    MaterialTheme.typography.bodySmall,
+
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(
+                            MaterialTheme
+                                .colorScheme
+                                .surfaceVariant
+                        )
+                        .padding(8.dp)
             )
         }
     }
@@ -848,27 +1098,31 @@ private fun StatCard(
     value: String,
     modifier: Modifier = Modifier
 ) {
+
     Card(
         modifier = modifier
     ) {
 
         Column(
-            modifier = Modifier.padding(14.dp)
+            Modifier.padding(14.dp)
         ) {
 
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelMedium
+                style =
+                    MaterialTheme.typography.labelMedium
             )
 
             Spacer(
-                modifier = Modifier.height(4.dp)
+                Modifier.height(4.dp)
             )
 
             Text(
                 text = value,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                style =
+                    MaterialTheme.typography.titleLarge,
+                fontWeight =
+                    FontWeight.Bold
             )
         }
     }
@@ -880,46 +1134,57 @@ private fun ActionCard(
     subtitle: String,
     action: () -> Unit
 ) {
+
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor =
-                MaterialTheme.colorScheme.surfaceContainerHighest
-        )
+
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    MaterialTheme
+                        .colorScheme
+                        .surfaceContainerHighest
+            )
     ) {
 
         Row(
-            modifier = Modifier
+
+            Modifier
                 .fillMaxWidth()
                 .padding(14.dp),
 
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment =
+                Alignment.CenterVertically,
 
             horizontalArrangement =
                 Arrangement.SpaceBetween
+
         ) {
 
             Column(
-                modifier = Modifier.weight(1f)
+                Modifier.weight(1f)
             ) {
 
                 Text(
                     text = title,
-                    fontWeight = FontWeight.Bold
+                    fontWeight =
+                        FontWeight.Bold
                 )
 
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall
+                    style =
+                        MaterialTheme.typography.bodySmall
                 )
             }
 
             Spacer(
-                modifier = Modifier.width(12.dp)
+                Modifier.width(12.dp)
             )
 
             Button(
                 onClick = action
             ) {
+
                 Text("Chạy")
             }
         }
