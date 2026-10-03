@@ -1,4 +1,6 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:OptIn(
+    androidx.compose.material3.ExperimentalMaterial3Api::class
+)
 
 package com.truong.darongmobile
 
@@ -40,10 +42,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,13 +68,13 @@ private data class AccUi(
     val logged: Boolean = false,
     val connected: Boolean = false,
     val bag: String = "0/0",
-    val stone: String = "0",
+    val stone: String = "0"
 )
 
 private val servers = listOf(
     "https://daorongsv1.shop",
     "https://daorongsv1.shop:52345",
-    "https://daorongsv1.shop:52346",
+    "https://daorongsv1.shop:52346"
 )
 
 class MainActivity : ComponentActivity() {
@@ -96,9 +98,9 @@ class MainActivity : ComponentActivity() {
 private fun DaRongTheme(
     content: @Composable () -> Unit
 ) {
-    MaterialTheme(
-        content = content
-    )
+    MaterialTheme {
+        content()
+    }
 }
 
 @Composable
@@ -115,64 +117,70 @@ private fun DaRongApp(
 
     var accs by remember {
         mutableStateOf(
-            (1..3).associateWith {
-                AccUi()
-            }
+            mapOf(
+                1 to AccUi(),
+                2 to AccUi(),
+                3 to AccUi()
+            )
         )
     }
 
     var logs by remember {
-        mutableStateOf(
-            listOf<String>()
-        )
+        mutableStateOf(emptyList<String>())
     }
 
-    val snack = remember {
+    val snackbarHostState = remember {
         SnackbarHostState()
     }
 
     LaunchedEffect(selectedAcc) {
-
         while (true) {
 
             try {
-
-                val st = bridge.statusJson(selectedAcc)
+                val status =
+                    bridge.statusJson(selectedAcc)
 
                 val current =
                     accs[selectedAcc] ?: AccUi()
 
-                accs = accs + (
-                    selectedAcc to current.copy(
-                        logged = st.optBoolean("logged"),
-                        connected = st.optBoolean("connected"),
-                        bag =
-                            "${st.optInt("bag")}/${st.optInt("bag_max")}",
-                        stone =
-                            String.format(
-                                "%,d",
-                                st.optLong("thach_anh")
-                            ),
+                accs =
+                    accs + (
+                        selectedAcc to current.copy(
+                            logged =
+                                status.optBoolean("logged"),
+
+                            connected =
+                                status.optBoolean("connected"),
+
+                            bag =
+                                "${status.optInt("bag")}/${status.optInt("bag_max")}",
+
+                            stone =
+                                String.format(
+                                    "%,d",
+                                    status.optLong("thach_anh")
+                                )
+                        )
                     )
-                )
+
+                val rawLogs =
+                    bridge.drainLogs(selectedAcc)
 
                 val newLogs =
-                    bridge
-                        .drainLogs(selectedAcc)
-                        .split("\\n")
+                    rawLogs
+                        .split("\n")
                         .filter {
                             it.isNotBlank()
                         }
 
                 if (newLogs.isNotEmpty()) {
-
                     logs =
                         (logs + newLogs)
                             .takeLast(300)
                 }
 
             } catch (_: Exception) {
-                // Không làm app crash nếu Python chưa sẵn sàng.
+                // Không để polling làm app crash.
             }
 
             delay(800)
@@ -185,7 +193,7 @@ private fun DaRongApp(
 
         topBar = {
 
-            SmallTopAppBar(
+            TopAppBar(
 
                 title = {
 
@@ -198,37 +206,49 @@ private fun DaRongApp(
 
                         Text(
                             text =
-                                "Android 16 • Xiaomi • Engine Python",
+                                "Android 16 • Xiaomi • Python Engine",
+
                             style =
-                                MaterialTheme.typography.labelSmall
+                                MaterialTheme
+                                    .typography
+                                    .labelSmall
                         )
                     }
                 },
 
                 colors =
-                    TopAppBarDefaults.smallTopAppBarColors(
+                    TopAppBarDefaults.topAppBarColors(
                         containerColor =
-                            MaterialTheme.colorScheme.surface
+                            MaterialTheme
+                                .colorScheme
+                                .surface
                     ),
 
                 actions = {
 
                     val online =
-                        accs[selectedAcc]?.connected == true
+                        accs[selectedAcc]
+                            ?.connected == true
 
                     Text(
 
                         text =
-                            if (online)
+                            if (online) {
                                 "ONLINE"
-                            else
-                                "OFFLINE",
+                            } else {
+                                "OFFLINE"
+                            },
 
                         color =
-                            if (online)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.error,
+                            if (online) {
+                                MaterialTheme
+                                    .colorScheme
+                                    .primary
+                            } else {
+                                MaterialTheme
+                                    .colorScheme
+                                    .error
+                            },
 
                         fontWeight =
                             FontWeight.Bold,
@@ -250,6 +270,7 @@ private fun DaRongApp(
             ) {
 
                 NavigationBarItem(
+
                     selected =
                         page == 0,
 
@@ -258,9 +279,11 @@ private fun DaRongApp(
                     },
 
                     icon = {
+
                         Icon(
                             imageVector =
                                 Icons.Filled.Dashboard,
+
                             contentDescription =
                                 "Tổng quan"
                         )
@@ -272,6 +295,7 @@ private fun DaRongApp(
                 )
 
                 NavigationBarItem(
+
                     selected =
                         page == 1,
 
@@ -280,9 +304,11 @@ private fun DaRongApp(
                     },
 
                     icon = {
+
                         Icon(
                             imageVector =
                                 Icons.Filled.AutoAwesome,
+
                             contentDescription =
                                 "Auto"
                         )
@@ -294,6 +320,7 @@ private fun DaRongApp(
                 )
 
                 NavigationBarItem(
+
                     selected =
                         page == 2,
 
@@ -302,9 +329,11 @@ private fun DaRongApp(
                     },
 
                     icon = {
+
                         Icon(
                             imageVector =
                                 Icons.Filled.Event,
+
                             contentDescription =
                                 "Sự kiện"
                         )
@@ -316,6 +345,7 @@ private fun DaRongApp(
                 )
 
                 NavigationBarItem(
+
                     selected =
                         page == 3,
 
@@ -324,9 +354,11 @@ private fun DaRongApp(
                     },
 
                     icon = {
+
                         Icon(
                             imageVector =
                                 Icons.Filled.Terminal,
+
                             contentDescription =
                                 "Log"
                         )
@@ -340,20 +372,28 @@ private fun DaRongApp(
         },
 
         snackbarHost = {
-            SnackbarHost(snack)
+            SnackbarHost(
+                hostState = snackbarHostState
+            )
         }
 
-    ) { padding ->
+    ) { paddingValues ->
 
         Column(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
+
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
         ) {
 
             AccountStrip(
+
                 accs = accs,
-                selected = selectedAcc,
+
+                selected =
+                    selectedAcc,
+
                 onSelect = {
                     selectedAcc = it
                 }
@@ -364,49 +404,69 @@ private fun DaRongApp(
                 0 -> {
 
                     OverviewPage(
+
                         bridge = bridge,
+
                         acc = selectedAcc,
+
                         state =
-                            accs[selectedAcc] ?: AccUi()
-                    ) { user, pass, server ->
+                            accs[selectedAcc]
+                                ?: AccUi(),
 
-                        accs =
-                            accs + (
-                                selectedAcc to (
-                                    accs[selectedAcc]
-                                        ?: AccUi()
-                                ).copy(
-                                    user = user,
-                                    pass = pass,
-                                    server = server
-                                )
-                            )
-
-                        bridge.login(
-                            selectedAcc,
-                            user.trim(),
+                        onLogin = {
+                            user,
                             pass,
-                            server
-                        )
-                    }
+                            server ->
+
+                            accs =
+                                accs + (
+                                    selectedAcc to (
+                                        accs[selectedAcc]
+                                            ?: AccUi()
+                                    ).copy(
+                                        user = user,
+                                        pass = pass,
+                                        server = server
+                                    )
+                                )
+
+                            bridge.login(
+                                selectedAcc,
+                                user.trim(),
+                                pass,
+                                server
+                            )
+                        }
+                    )
                 }
 
                 1 -> {
+
                     AutoPage(
+
                         bridge = bridge,
-                        acc = selectedAcc
+
+                        acc =
+                            selectedAcc
                     )
                 }
 
                 2 -> {
+
                     EventPage(
+
                         bridge = bridge,
-                        acc = selectedAcc
+
+                        acc =
+                            selectedAcc
                     )
                 }
 
                 3 -> {
-                    LogPage(logs)
+
+                    LogPage(
+                        logs = logs
+                    )
                 }
             }
         }
@@ -415,33 +475,37 @@ private fun DaRongApp(
 
 @Composable
 private fun AccountStrip(
+
     accs: Map<Int, AccUi>,
+
     selected: Int,
+
     onSelect: (Int) -> Unit
 ) {
 
     Row(
 
-        Modifier
-            .fillMaxWidth()
-            .horizontalScroll(
-                rememberScrollState()
-            )
-            .padding(
-                horizontal = 12.dp,
-                vertical = 8.dp
-            ),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(
+                    rememberScrollState()
+                )
+                .padding(
+                    horizontal = 12.dp,
+                    vertical = 8.dp
+                ),
 
         horizontalArrangement =
             Arrangement.spacedBy(8.dp)
-
     ) {
 
         accs.keys
             .sorted()
             .forEach { id ->
 
-                val s = accs[id]
+                val state =
+                    accs[id]
 
                 FilterChip(
 
@@ -455,21 +519,29 @@ private fun AccountStrip(
                     label = {
 
                         Text(
-                            "ACC $id" +
-                                if (s?.logged == true)
-                                    " • ✓"
-                                else
-                                    ""
+
+                            text =
+                                "ACC $id" +
+                                    if (
+                                        state?.logged == true
+                                    ) {
+                                        " • ✓"
+                                    } else {
+                                        ""
+                                    }
                         )
                     },
 
                     leadingIcon = {
 
                         Icon(
+
                             imageVector =
                                 Icons.Filled.AccountCircle,
+
                             contentDescription =
                                 null,
+
                             modifier =
                                 Modifier.size(18.dp)
                         )
@@ -481,26 +553,29 @@ private fun AccountStrip(
 
 @Composable
 private fun OverviewPage(
+
     bridge: PythonBridge,
+
     acc: Int,
+
     state: AccUi,
-    onLogin:
-        (
-            String,
-            String,
-            String
-        ) -> Unit
+
+    onLogin: (
+        String,
+        String,
+        String
+    ) -> Unit
 ) {
 
-    var user by remember(acc) {
+    var user by remember(acc, state.user) {
         mutableStateOf(state.user)
     }
 
-    var pass by remember(acc) {
+    var pass by remember(acc, state.pass) {
         mutableStateOf(state.pass)
     }
 
-    var server by remember(acc) {
+    var server by remember(acc, state.server) {
         mutableStateOf(state.server)
     }
 
@@ -511,7 +586,6 @@ private fun OverviewPage(
 
         verticalArrangement =
             Arrangement.spacedBy(12.dp)
-
     ) {
 
         item {
@@ -520,25 +594,31 @@ private fun OverviewPage(
 
                 Column(
 
-                    Modifier.padding(16.dp),
+                    modifier =
+                        Modifier.padding(16.dp),
 
                     verticalArrangement =
                         Arrangement.spacedBy(10.dp)
-
                 ) {
 
                     Text(
+
                         text =
                             "Tài khoản ACC $acc",
+
                         fontWeight =
                             FontWeight.Bold,
+
                         style =
-                            MaterialTheme.typography.titleMedium
+                            MaterialTheme
+                                .typography
+                                .titleMedium
                     )
 
                     OutlinedTextField(
 
-                        value = user,
+                        value =
+                            user,
 
                         onValueChange = {
                             user = it
@@ -556,7 +636,8 @@ private fun OverviewPage(
 
                     OutlinedTextField(
 
-                        value = pass,
+                        value =
+                            pass,
 
                         onValueChange = {
                             pass = it
@@ -577,20 +658,22 @@ private fun OverviewPage(
 
                     Text(
                         text = "Server",
+
                         style =
-                            MaterialTheme.typography.labelLarge
+                            MaterialTheme
+                                .typography
+                                .labelLarge
                     )
 
                     Row(
 
-                        Modifier
-                            .horizontalScroll(
+                        modifier =
+                            Modifier.horizontalScroll(
                                 rememberScrollState()
                             ),
 
                         horizontalArrangement =
                             Arrangement.spacedBy(8.dp)
-
                     ) {
 
                         servers.forEach { url ->
@@ -620,12 +703,12 @@ private fun OverviewPage(
 
                         horizontalArrangement =
                             Arrangement.spacedBy(8.dp)
-
                     ) {
 
                         Button(
 
                             onClick = {
+
                                 onLogin(
                                     user,
                                     pass,
@@ -636,40 +719,46 @@ private fun OverviewPage(
                             enabled =
                                 user.isNotBlank() &&
                                     pass.isNotBlank()
-
                         ) {
 
                             Text(
-                                if (state.logged)
+                                if (state.logged) {
                                     "Đăng nhập lại"
-                                else
+                                } else {
                                     "Đăng nhập"
+                                }
                             )
                         }
 
                         OutlinedButton(
 
                             onClick = {
-                                bridge.disconnect(acc)
+
+                                bridge.disconnect(
+                                    acc
+                                )
                             },
 
                             enabled =
                                 state.connected
-
                         ) {
+
                             Text("Ngắt")
                         }
 
                         OutlinedButton(
 
                             onClick = {
-                                bridge.stopAutomations(acc)
+
+                                bridge.stopAutomations(
+                                    acc
+                                )
                             },
 
                             enabled =
                                 state.connected
-
                         ) {
+
                             Text("Dừng Auto")
                         }
                     }
@@ -680,25 +769,32 @@ private fun OverviewPage(
                             when {
 
                                 state.logged &&
-                                    state.connected ->
+                                    state.connected -> {
                                     "● Đã kết nối và đăng nhập"
+                                }
 
-                                state.connected ->
+                                state.connected -> {
                                     "● Đã kết nối"
+                                }
 
-                                else ->
+                                else -> {
                                     "○ Chưa kết nối"
+                                }
                             },
 
                         color =
-                            if (state.connected)
+                            if (state.connected) {
+
                                 MaterialTheme
                                     .colorScheme
                                     .primary
-                            else
+
+                            } else {
+
                                 MaterialTheme
                                     .colorScheme
-                                    .error,
+                                    .error
+                            },
 
                         fontWeight =
                             FontWeight.SemiBold
@@ -711,23 +807,33 @@ private fun OverviewPage(
 
             Row(
 
-                Modifier.fillMaxWidth(),
+                modifier =
+                    Modifier.fillMaxWidth(),
 
                 horizontalArrangement =
                     Arrangement.spacedBy(10.dp)
-
             ) {
 
                 StatCard(
-                    title = "Túi rồng",
-                    value = state.bag,
+
+                    title =
+                        "Túi rồng",
+
+                    value =
+                        state.bag,
+
                     modifier =
                         Modifier.weight(1f)
                 )
 
                 StatCard(
-                    title = "Thạch Anh",
-                    value = state.stone,
+
+                    title =
+                        "Thạch Anh",
+
+                    value =
+                        state.stone,
+
                     modifier =
                         Modifier.weight(1f)
                 )
@@ -737,18 +843,27 @@ private fun OverviewPage(
         item {
 
             Text(
-                text = "Bảng điều khiển",
+
+                text =
+                    "Bảng điều khiển",
+
                 fontWeight =
                     FontWeight.Bold,
+
                 style =
-                    MaterialTheme.typography.titleMedium
+                    MaterialTheme
+                        .typography
+                        .titleMedium
             )
         }
 
         item {
 
             ActionCard(
-                title = "Thu hoạch tất cả",
+
+                title =
+                    "Thu hoạch tất cả",
+
                 subtitle =
                     "ThuHoachCT theo các đảo đã mở"
             ) {
@@ -763,9 +878,12 @@ private fun OverviewPage(
         item {
 
             ActionCard(
-                title = "Nhận quà",
+
+                title =
+                    "Nhận quà",
+
                 subtitle =
-                    "Thu toàn bộ gói quà / thưởng đang có"
+                    "Thu toàn bộ gói quà / thưởng"
             ) {
 
                 bridge.action(
@@ -778,7 +896,10 @@ private fun OverviewPage(
         item {
 
             ActionCard(
-                title = "Làm mới Lãi",
+
+                title =
+                    "Làm mới Lãi",
+
                 subtitle =
                     "Tải danh sách lai hiện tại"
             ) {
@@ -794,7 +915,9 @@ private fun OverviewPage(
 
 @Composable
 private fun AutoPage(
+
     bridge: PythonBridge,
+
     acc: Int
 ) {
 
@@ -805,25 +928,33 @@ private fun AutoPage(
 
         verticalArrangement =
             Arrangement.spacedBy(12.dp)
-
     ) {
 
         item {
 
             Text(
-                text = "Tự động hóa",
+
+                text =
+                    "Tự động hóa",
+
                 fontWeight =
                     FontWeight.Bold,
+
                 style =
-                    MaterialTheme.typography.headlineSmall
+                    MaterialTheme
+                        .typography
+                        .headlineSmall
             )
         }
 
         item {
 
             ActionCard(
-                "Boss thế giới",
-                "Bật lịch Boss tự động"
+                title =
+                    "Boss thế giới",
+
+                subtitle =
+                    "Bật lịch Boss tự động"
             ) {
 
                 bridge.action(
@@ -836,8 +967,11 @@ private fun AutoPage(
         item {
 
             ActionCard(
-                "Dừng Boss",
-                "Ngắt lịch Boss"
+                title =
+                    "Dừng Boss",
+
+                subtitle =
+                    "Ngắt lịch Boss"
             ) {
 
                 bridge.action(
@@ -850,8 +984,11 @@ private fun AutoPage(
         item {
 
             ActionCard(
-                "Tẩy Tủy 1 lượt",
-                "Chạy một lượt Tẩy Tủy"
+                title =
+                    "Tẩy Tủy 1 lượt",
+
+                subtitle =
+                    "Chạy một lượt Tẩy Tủy"
             ) {
 
                 bridge.action(
@@ -864,8 +1001,11 @@ private fun AutoPage(
         item {
 
             ActionCard(
-                "Viễn Chinh",
-                "TinhTheXanh1 • chế độ 0"
+                title =
+                    "Viễn Chinh",
+
+                subtitle =
+                    "TinhTheXanh1 • chế độ 0"
             ) {
 
                 bridge.action(
@@ -878,8 +1018,11 @@ private fun AutoPage(
         item {
 
             ActionCard(
-                "Đấu Trường",
-                "Auto theo cấu hình mặc định"
+                title =
+                    "Đấu Trường",
+
+                subtitle =
+                    "Auto theo cấu hình mặc định"
             ) {
 
                 bridge.action(
@@ -892,8 +1035,11 @@ private fun AutoPage(
         item {
 
             ActionCard(
-                "Lôi Đài",
-                "Đánh 1 lượt không mua lượt"
+                title =
+                    "Lôi Đài",
+
+                subtitle =
+                    "Đánh 1 lượt không mua lượt"
             ) {
 
                 bridge.action(
@@ -906,8 +1052,11 @@ private fun AutoPage(
         item {
 
             ActionCard(
-                "Feed Auto",
-                "Chạy bộ xử lý cho ăn theo đảo"
+                title =
+                    "Feed Auto",
+
+                subtitle =
+                    "Chạy xử lý cho ăn theo đảo"
             ) {
 
                 bridge.action(
@@ -920,8 +1069,11 @@ private fun AutoPage(
         item {
 
             ActionCard(
-                "Quét đảo",
-                "Cập nhật danh sách đảo từ LoginSuccess"
+                title =
+                    "Quét đảo",
+
+                subtitle =
+                    "Cập nhật danh sách đảo"
             ) {
 
                 bridge.action(
@@ -934,11 +1086,16 @@ private fun AutoPage(
         item {
 
             ActionCard(
-                "Dừng toàn bộ",
-                "Dừng các auto controller của ACC"
+                title =
+                    "Dừng toàn bộ",
+
+                subtitle =
+                    "Dừng tất cả automation"
             ) {
 
-                bridge.stopAll(acc)
+                bridge.stopAll(
+                    acc
+                )
             }
         }
     }
@@ -946,7 +1103,9 @@ private fun AutoPage(
 
 @Composable
 private fun EventPage(
+
     bridge: PythonBridge,
+
     acc: Int
 ) {
 
@@ -957,25 +1116,34 @@ private fun EventPage(
 
         verticalArrangement =
             Arrangement.spacedBy(12.dp)
-
     ) {
 
         item {
 
             Text(
-                text = "Sự kiện",
+
+                text =
+                    "Sự kiện",
+
                 fontWeight =
                     FontWeight.Bold,
+
                 style =
-                    MaterialTheme.typography.headlineSmall
+                    MaterialTheme
+                        .typography
+                        .headlineSmall
             )
         }
 
         item {
 
             ActionCard(
-                "Điểm danh sự kiện",
-                "Chạy luồng điểm danh/nhiệm vụ"
+
+                title =
+                    "Điểm danh sự kiện",
+
+                subtitle =
+                    "Chạy luồng điểm danh / nhiệm vụ"
             ) {
 
                 bridge.action(
@@ -988,8 +1156,12 @@ private fun EventPage(
         item {
 
             ActionCard(
-                "Event đang chọn",
-                "Chạy EventSocketController với event mặc định"
+
+                title =
+                    "Event đang chọn",
+
+                subtitle =
+                    "Chạy EventSocketController"
             ) {
 
                 bridge.action(
@@ -1002,8 +1174,12 @@ private fun EventPage(
         item {
 
             ActionCard(
-                "Ải Thí Luyện",
-                "Chạy 1 lượt theo cấu hình mặc định"
+
+                title =
+                    "Ải Thí Luyện",
+
+                subtitle =
+                    "Chạy 1 lượt"
             ) {
 
                 bridge.action(
@@ -1016,8 +1192,12 @@ private fun EventPage(
         item {
 
             ActionCard(
-                "Thủy Quái",
-                "Chạy 1 lượt theo cấu hình mặc định"
+
+                title =
+                    "Thủy Quái",
+
+                subtitle =
+                    "Chạy 1 lượt"
             ) {
 
                 bridge.action(
@@ -1030,8 +1210,12 @@ private fun EventPage(
         item {
 
             ActionCard(
-                "Sinh nhật AI",
-                "Chạy 1 lượt theo cấu hình mặc định"
+
+                title =
+                    "Sinh nhật AI",
+
+                subtitle =
+                    "Chạy 1 lượt"
             ) {
 
                 bridge.action(
@@ -1055,17 +1239,22 @@ private fun LogPage(
 
         verticalArrangement =
             Arrangement.spacedBy(4.dp)
-
     ) {
 
         item {
 
             Text(
-                text = "Nhật ký realtime",
+
+                text =
+                    "Nhật ký realtime",
+
                 fontWeight =
                     FontWeight.Bold,
+
                 style =
-                    MaterialTheme.typography.headlineSmall
+                    MaterialTheme
+                        .typography
+                        .headlineSmall
             )
         }
 
@@ -1073,10 +1262,13 @@ private fun LogPage(
 
             Text(
 
-                text = line,
+                text =
+                    line,
 
                 style =
-                    MaterialTheme.typography.bodySmall,
+                    MaterialTheme
+                        .typography
+                        .bodySmall,
 
                 modifier =
                     Modifier
@@ -1094,33 +1286,52 @@ private fun LogPage(
 
 @Composable
 private fun StatCard(
+
     title: String,
+
     value: String,
-    modifier: Modifier = Modifier
+
+    modifier: Modifier =
+        Modifier
 ) {
 
     Card(
-        modifier = modifier
+        modifier =
+            modifier
     ) {
 
         Column(
-            Modifier.padding(14.dp)
+
+            modifier =
+                Modifier.padding(14.dp)
         ) {
 
             Text(
-                text = title,
+
+                text =
+                    title,
+
                 style =
-                    MaterialTheme.typography.labelMedium
+                    MaterialTheme
+                        .typography
+                        .labelMedium
             )
 
             Spacer(
-                Modifier.height(4.dp)
+                modifier =
+                    Modifier.height(4.dp)
             )
 
             Text(
-                text = value,
+
+                text =
+                    value,
+
                 style =
-                    MaterialTheme.typography.titleLarge,
+                    MaterialTheme
+                        .typography
+                        .titleLarge,
+
                 fontWeight =
                     FontWeight.Bold
             )
@@ -1130,8 +1341,11 @@ private fun StatCard(
 
 @Composable
 private fun ActionCard(
+
     title: String,
+
     subtitle: String,
+
     action: () -> Unit
 ) {
 
@@ -1142,49 +1356,60 @@ private fun ActionCard(
                 containerColor =
                     MaterialTheme
                         .colorScheme
-                        .surfaceContainerHighest
+                        .surfaceVariant
             )
     ) {
 
         Row(
 
-            Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
 
             verticalAlignment =
                 Alignment.CenterVertically,
 
             horizontalArrangement =
                 Arrangement.SpaceBetween
-
         ) {
 
             Column(
-                Modifier.weight(1f)
+
+                modifier =
+                    Modifier.weight(1f)
             ) {
 
                 Text(
-                    text = title,
+
+                    text =
+                        title,
+
                     fontWeight =
                         FontWeight.Bold
                 )
 
                 Text(
-                    text = subtitle,
+
+                    text =
+                        subtitle,
+
                     style =
-                        MaterialTheme.typography.bodySmall
+                        MaterialTheme
+                            .typography
+                            .bodySmall
                 )
             }
 
             Spacer(
-                Modifier.width(12.dp)
+                modifier =
+                    Modifier.width(12.dp)
             )
 
             Button(
-                onClick = action
+                onClick =
+                    action
             ) {
-
                 Text("Chạy")
             }
         }
