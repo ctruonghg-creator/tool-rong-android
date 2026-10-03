@@ -1,6 +1,6 @@
 # Đảo Rồng Mobile — Android 16 / Xiaomi
 
-Bản này thay toàn bộ UI Tkinter bằng Jetpack Compose và giữ engine Python hiện tại qua Chaquopy.
+Bản này thay toàn bộ UI Tkinter bằng Jetpack Compose và giữ engine Python hiện tại qua Chaquopy. Cấu hình build dùng AGP 8.13.2 + Gradle 8.13 để tương thích compileSdk 36.
 
 ## Build GitHub Actions
 
@@ -12,6 +12,7 @@ Bản này thay toàn bộ UI Tkinter bằng Jetpack Compose và giữ engine Py
 ## Cấu hình
 
 - compileSdk 36 / targetSdk 36 (Android 16)
+- Android Gradle Plugin 8.13.2 / Gradle 8.13 / JDK 17
 - minSdk 24
 - ABI: `arm64-v8a`, `armeabi-v7a`, `x86_64`
 - Chaquopy 16.1.0 / Python 3.13

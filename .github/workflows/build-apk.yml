@@ -40,11 +40,11 @@ jobs:
 
       - name: Download Gradle
         run: |
-          curl -L --retry 5 --retry-delay 2 -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.9-bin.zip
+          curl -L --retry 5 --retry-delay 2 -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.13-bin.zip
           unzip -q /tmp/gradle.zip -d /tmp
 
       - name: Build APK
-        run: /tmp/gradle-8.9/bin/gradle --no-daemon --stacktrace assembleDebug
+        run: /tmp/gradle-8.13/bin/gradle --no-daemon --stacktrace assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
